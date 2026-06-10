@@ -33,6 +33,10 @@ export const getDb = (): DbSchema => {
 };
 
 export const saveDb = (db: DbSchema) => {
+  const dir = path.dirname(DB_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
 };
 

@@ -1,7 +1,7 @@
-import chokidar from 'chokidar';
+import chokidar, { FSWatcher } from 'chokidar';
 import { getConfig } from './config';
 
-let watcher: chokidar.FSWatcher | null = null;
+let watcher: FSWatcher | null = null;
 let onChangeCallback: (() => void) | null = null;
 
 export const initWatcher = (callback: () => void) => {

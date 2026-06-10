@@ -28,7 +28,7 @@ const getMimeType = (filePath: string) => {
 };
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT as string, 10) || 5000;
 const SEGMENT_DURATION = 10; // seconds
 
 app.use(cors());
@@ -281,14 +281,20 @@ app.get('/api/stream/:id', (req, res) => {
 });
 
 // Serve frontend in production
-const publicPath = path.join(__dirname, '../public');
+const publicPath = path.join(__dirname, '../../public');
 if (fs.existsSync(publicPath)) {
   app.use(express.static(publicPath));
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
+  // Use a middleware instead of '*' route to catch all remaining GET requests
+  // This avoids the Express 5 / path-to-regexp 'Missing parameter name' error
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
       res.sendFile(path.join(publicPath, 'index.html'));
+    } else {
+      next();
     }
   });
+} else {
+  console.log(`Warning: Frontend build not found at ${publicPath}`);
 }
 
 app.listen(PORT, '0.0.0.0', () => console.log(`Server listening on 0.0.0.0:${PORT}`));

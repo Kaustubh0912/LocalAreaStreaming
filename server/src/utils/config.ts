@@ -30,5 +30,9 @@ export const getConfig = (): AppConfig => {
 };
 
 export const saveConfig = (config: AppConfig) => {
+  const dir = path.dirname(CONFIG_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 };
