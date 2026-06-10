@@ -12,18 +12,17 @@ export interface MediaInfo {
 
 export const probeMedia = async (filePath: string): Promise<MediaInfo> => {
   try {
-    const { stdout } = await execPromise(
-      `ffprobe -v error -show_entries format=duration -show_entries stream=width,height,codec_name -of default=noprint_wrappers=1:nokey=1 "${filePath}"`
-    );
-    
-    const lines = stdout.trim().split('\n');
-    // ffprobe output depends on streams, usually: [codec, width, height, duration]
-    // But format can vary. We'll be safe:
+    // Get duration
+    const durRes = await execPromise(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`);
+    const duration = parseFloat(durRes.stdout.trim()) || 0;
+
+    // Get video codec
+    const codecRes = await execPromise(`ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "${filePath}"`);
+    const codec = codecRes.stdout.trim().split('\n')[0];
+
     return {
-      duration: parseFloat(lines[lines.length - 1]) || 0,
-      codec: lines[0],
-      width: parseInt(lines[1], 10),
-      height: parseInt(lines[2], 10),
+      duration,
+      codec
     };
   } catch (e) {
     console.error(`Probe failed for ${filePath}`, e);

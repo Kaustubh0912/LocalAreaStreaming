@@ -183,7 +183,7 @@ app.get('/api/stream/:id/vod.m3u8', async (req, res) => {
 });
 
 // Transcode specific HLS segment on the fly
-app.get('/api/stream/:id/segment/:index.ts', (req, res) => {
+app.get('/api/stream/:id/segment/:index.ts', async (req, res) => {
   try {
     const decoded = Buffer.from(req.params.id, 'base64').toString('ascii');
     const [baseDir, relPath] = decoded.split('|');
@@ -212,11 +212,21 @@ app.get('/api/stream/:id/segment/:index.ts', (req, res) => {
     }
 
     if (!activeTranscodes[req.params.id]) {
+      const info = await probeMedia(filePath);
+      
+      // OPTIMIZATION: If the video is already H.264, we do not need to re-encode it.
+      // We can just copy the video stream, which uses 0% CPU!
+      const isH264 = info.codec === 'h264';
+      
+      const videoArgs = isH264 
+        ? ['-c:v', 'copy'] 
+        : ['-c:v', 'libx264', '-preset', 'superfast', '-crf', '26', '-threads', '2']; // Limited threads to allow multiple streams
+
       const ffmpeg = spawn('ffmpeg', [
         '-ss', startTime.toString(),
         '-i', filePath,
         '-copyts',
-        '-c:v', 'libx264', '-preset', 'superfast', '-crf', '26',
+        ...videoArgs,
         '-c:a', 'aac', '-b:a', '128k', '-ac', '2',
         '-f', 'hls',
         '-hls_time', SEGMENT_DURATION.toString(),
