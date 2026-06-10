@@ -15,10 +15,10 @@ COPY server/ ./
 RUN npm run build
 
 # Stage 3: Final Production Image
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-# Install ffmpeg for transcoding support (crucial for MKV Compatibility Mode)
-RUN apk add --no-cache ffmpeg
+# Install ffmpeg with hardware acceleration (NVENC) support built-in
+RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 
 # Set up working directory
 WORKDIR /app/server

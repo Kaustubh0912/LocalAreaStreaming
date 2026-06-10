@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import { getConfig, saveConfig } from './utils/config';
 import { getDb, updateProgress, toggleWatched } from './utils/db';
 import { parseMovieTitle } from './utils/parser';
@@ -11,6 +11,17 @@ import { initWatcher, updateWatcher } from './utils/watcher';
 import { probeMedia } from './utils/probe';
 
 dotenv.config();
+
+// Auto-detect if NVENC Hardware Acceleration is actually available
+let isNvencAvailable = false;
+try {
+  // We run a dummy frame encode. If it exits with 0, the GPU is active.
+  const result = spawnSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'nullsrc', '-c:v', 'h264_nvenc', '-vframes', '1', '-f', 'null', '-']);
+  isNvencAvailable = result.status === 0;
+  console.log(`[SYS] Hardware Acceleration (NVENC) Detected: ${isNvencAvailable}`);
+} catch (e) {
+  console.log(`[SYS] Hardware Acceleration (NVENC) Detected: false (Failed to probe)`);
+}
 
 // Get MIME type based on file extension
 const getMimeType = (filePath: string) => {
@@ -218,9 +229,18 @@ app.get('/api/stream/:id/segment/:index.ts', async (req, res) => {
       // We can just copy the video stream, which uses 0% CPU!
       const isH264 = info.codec === 'h264';
       
-      const videoArgs = isH264 
-        ? ['-c:v', 'copy'] 
-        : ['-c:v', 'libx264', '-preset', 'superfast', '-crf', '26', '-threads', '2']; // Limited threads to allow multiple streams
+      // OPTIMIZATION 2: Hardware Acceleration!
+      // If we must transcode, we use h264_nvenc to leverage the NVIDIA GPU if enabled and available.
+      const useHWAccel = process.env.HW_ACCEL === 'true';
+      let videoArgs: string[];
+
+      if (isH264) {
+        videoArgs = ['-c:v', 'copy'];
+      } else if (useHWAccel && isNvencAvailable) {
+        videoArgs = ['-hwaccel', 'cuda', '-c:v', 'h264_nvenc', '-preset', 'p1', '-cq', '28'];
+      } else {
+        videoArgs = ['-c:v', 'libx264', '-preset', 'superfast', '-crf', '26', '-threads', '2'];
+      }
 
       const ffmpeg = spawn('ffmpeg', [
         '-ss', startTime.toString(),

@@ -401,3 +401,82 @@ video {
   font-weight: 700;
   letter-spacing: 2px;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .top-nav {
+    height: auto;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .nav-left {
+    width: 100%;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .search-container {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+
+  .nav-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .main-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1.5rem 1rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    width: 95%;
+  }
+
+  .player-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    background: rgba(0,0,0,0.85); /* Darker on mobile for better contrast */
+    opacity: 1; /* Always show header elements initially on touch devices */
+  }
+
+  .player-info {
+    gap: 1rem;
+    width: 100%;
+  }
+  
+  .player-title-text {
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .action-chip {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+}

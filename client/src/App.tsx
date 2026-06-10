@@ -31,6 +31,31 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'title' | 'date' | 'size'>('date');
   const [useTranscoding, setUseTranscoding] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  // Detect iOS for manual PWA instruction
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    });
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        }
+        setDeferredPrompt(null);
+      });
+    }
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<number | null>(null);
@@ -179,6 +204,19 @@ function App() {
               <option value="size">File Size</option>
             </select>
           </div>
+          {deferredPrompt ? (
+            <button className="settings-btn" onClick={handleInstallClick} style={{ background: '#10b981', color: '#000' }}>
+              Install App
+            </button>
+          ) : (isIOS && !isStandalone) ? (
+            <button className="settings-btn" onClick={() => alert("To install the app on iOS:\n\n1. Tap the 'Share' icon at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.")} style={{ background: '#10b981', color: '#000' }}>
+              Install App
+            </button>
+          ) : (isAndroid && !isStandalone) ? (
+            <button className="settings-btn" onClick={() => alert("To install the app on Android (via Tailscale):\n\n1. Tap the three dots (menu) in the top right of Chrome.\n2. Tap 'Add to Home screen'.")} style={{ background: '#10b981', color: '#000' }}>
+              Install App
+            </button>
+          ) : null}
           <button className="settings-btn" onClick={() => setShowSettings(true)}>Settings</button>
         </div>
       </nav>

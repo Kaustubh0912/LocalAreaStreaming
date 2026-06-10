@@ -10,9 +10,17 @@ services:
     environment:
       - PORT=8096
       - NODE_ENV=production
+      - HW_ACCEL=true 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     volumes:
       # Maps the backend data folder for persistence (progress, watched status, hls cache)
-      - ./data:/app/data
+      - ./data:/app/server/data
       
       # ⚠️ IMPORTANT: MEDIA FOLDER MAPPING ⚠️
       # To let the Docker container see your Windows movie folder, you MUST map it here.
