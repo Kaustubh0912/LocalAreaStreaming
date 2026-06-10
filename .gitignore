@@ -1,0 +1,70 @@
+# =========================
+# LAS Monorepo .gitignore
+# =========================
+
+# --- AI assistant/tooling local state ---
+.claude/
+.gemini/
+
+# --- Dependencies ---
+node_modules/
+**/node_modules/
+
+# --- Build outputs ---
+dist/
+build/
+coverage/
+**/dist/
+**/build/
+**/coverage/
+
+# --- TypeScript / bundler caches ---
+*.tsbuildinfo
+.vite/
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- Environment and local config ---
+.env
+.env.*
+!.env.example
+*.local
+
+# --- OS / Editor files ---
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- Runtime/temp ---
+tmp/
+temp/
+*.tmp
+
+# --- Python cache (if used in tooling/scripts) ---
+__pycache__/
+*.py[cod]
+
+# --- Local databases / runtime server data ---
+*.sqlite
+*.sqlite3
+
+# --- Large/generated media stream data ---
+data/hls/
+server/data/hls/
+
+# Keep placeholders if needed
+!.gitkeep
