@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  las:
+    build: .
+    container_name: las-media-server
+    restart: always # This ensures it starts on Windows startup!
+    ports:
+      - "8096:8096" # We are using port 8096, the industry standard for media servers!
+    environment:
+      - PORT=8096
+      - NODE_ENV=production
+    volumes:
+      # Maps the backend data folder for persistence (progress, watched status, hls cache)
+      - ./data:/app/data
+      
+      # ⚠️ IMPORTANT: MEDIA FOLDER MAPPING ⚠️
+      # To let the Docker container see your Windows movie folder, you MUST map it here.
+      # Format is: "- WindowsPath:ContainerPath"
+      # Example: If your movies are in D:\Movies, uncomment the line below:
+      - D:\Movies:/media
+      
+      # When you open the website settings, you will type "/media" as your folder path!

@@ -280,4 +280,15 @@ app.get('/api/stream/:id', (req, res) => {
   } catch (e) { res.status(500).send('Error'); }
 });
 
+// Serve frontend in production
+const publicPath = path.join(__dirname, '../public');
+if (fs.existsSync(publicPath)) {
+  app.use(express.static(publicPath));
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(publicPath, 'index.html'));
+    }
+  });
+}
+
 app.listen(PORT, '0.0.0.0', () => console.log(`Server listening on 0.0.0.0:${PORT}`));

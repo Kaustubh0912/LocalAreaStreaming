@@ -36,7 +36,7 @@ function App() {
   const progressInterval = useRef<number | null>(null);
   const hlsRef = useRef<Hls | null>(null);
 
-  const API_BASE = `http://${window.location.hostname}:5000/api`;
+  const API_BASE = import.meta.env.PROD ? '/api' : `http://${window.location.hostname}:5000/api`;
 
   useEffect(() => {
     fetchConfig();
