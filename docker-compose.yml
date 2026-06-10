@@ -10,7 +10,8 @@ services:
     environment:
       - PORT=8096
       - NODE_ENV=production
-      - HW_ACCEL=true 
+      - HW_ACCEL=true
+      - NVIDIA_DRIVER_CAPABILITIES=all
     deploy:
       resources:
         reservations:
