@@ -1,32 +1,23 @@
-version: '3.8'
-
 services:
   las:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: las-media-server:latest
     container_name: las-media-server
-    restart: always # This ensures it starts on Windows startup!
+    restart: unless-stopped
+    # Passes TMDB_API_KEY, OPENSUBTITLES_API_KEY, HW_ACCEL, etc.
+    env_file:
+      - .env
     ports:
-      - "8096:8096" # We are using port 8096, the industry standard for media servers!
+      - "${LAS_PORT:-8096}:8096"
     environment:
-      - PORT=8096
-      - NODE_ENV=production
-      - HW_ACCEL=true
-      - NVIDIA_DRIVER_CAPABILITIES=all
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      PORT: 8096
+      NODE_ENV: production
     volumes:
-      # Maps the backend data folder for persistence (progress, watched status, hls cache)
+      # Stores config, watch progress, poster cache, subtitle cache, and HLS cache.
       - ./data:/app/server/data
-      
-      # ⚠️ IMPORTANT: MEDIA FOLDER MAPPING ⚠️
-      # To let the Docker container see your Windows movie folder, you MUST map it here.
-      # Format is: "- WindowsPath:ContainerPath"
-      # Example: If your movies are in D:\Movies, uncomment the line below:
-      - D:\Movies:/media
-      
-      # When you open the website settings, you will type "/media" as your folder path!
+
+      # Set LAS_MEDIA_PATH in .env, then add /media in the app settings.
+      # Example in .env on Windows: LAS_MEDIA_PATH=D:\Movies
+      - ${LAS_MEDIA_PATH:-./media}:/media:ro

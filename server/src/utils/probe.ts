@@ -1,31 +1,78 @@
-import { exec } from 'child_process';
-import util from 'util';
+import { execFile } from "child_process";
+import util from "util";
 
-const execPromise = util.promisify(exec);
+const execFilePromise = util.promisify(execFile);
 
 export interface MediaInfo {
   duration: number;
   width?: number;
   height?: number;
   codec?: string;
+  audioCodec?: string;
+  subtitleCodecs?: string[];
+  hasSubtitles?: boolean;
+}
+
+interface FfprobeStream {
+  codec_type?: "video" | "audio" | "subtitle";
+  codec_name?: string;
+  width?: number;
+  height?: number;
 }
 
 export const probeMedia = async (filePath: string): Promise<MediaInfo> => {
   try {
-    // Get duration
-    const durRes = await execPromise(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`);
-    const duration = parseFloat(durRes.stdout.trim()) || 0;
+    const [durationResult, streamsResult] = await Promise.all([
+      execFilePromise(
+        "ffprobe",
+        [
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration",
+          "-of",
+          "default=noprint_wrappers=1:nokey=1",
+          filePath,
+        ],
+        { windowsHide: true },
+      ),
+      execFilePromise(
+        "ffprobe",
+        [
+          "-v",
+          "error",
+          "-show_entries",
+          "stream=codec_type,codec_name,width,height",
+          "-of",
+          "json",
+          filePath,
+        ],
+        { windowsHide: true, maxBuffer: 1024 * 1024 * 2 },
+      ),
+    ]);
 
-    // Get video codec
-    const codecRes = await execPromise(`ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "${filePath}"`);
-    const codec = codecRes.stdout.trim().split('\n')[0];
+    const duration = parseFloat(durationResult.stdout.trim()) || 0;
+    const parsed = JSON.parse(streamsResult.stdout || '{"streams":[]}') as {
+      streams?: FfprobeStream[];
+    };
+    const streams = parsed.streams ?? [];
+    const video = streams.find((stream) => stream.codec_type === "video");
+    const audio = streams.find((stream) => stream.codec_type === "audio");
+    const subtitleCodecs = streams
+      .filter((stream) => stream.codec_type === "subtitle" && stream.codec_name)
+      .map((stream) => stream.codec_name as string);
 
     return {
       duration,
-      codec
+      width: video?.width,
+      height: video?.height,
+      codec: video?.codec_name,
+      audioCodec: audio?.codec_name,
+      subtitleCodecs,
+      hasSubtitles: subtitleCodecs.length > 0,
     };
   } catch (e) {
     console.error(`Probe failed for ${filePath}`, e);
-    return { duration: 0 };
+    return { duration: 0, hasSubtitles: false, subtitleCodecs: [] };
   }
 };

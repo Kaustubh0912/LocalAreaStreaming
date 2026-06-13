@@ -1,42 +1,8 @@
 <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="neonGreen" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#10b981"/>
-      <stop offset="1" stop-color="#047857"/>
-    </linearGradient>
-    <linearGradient id="cyberBlue" x1="0" y1="100" x2="100" y2="0" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0ea5e9"/>
-      <stop offset="1" stop-color="#0284c7"/>
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="4" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
-  </defs>
-  
-  <!-- Deep Space Background -->
-  <rect width="100" height="100" rx="24" fill="#020617"/>
-  
-  <!-- Cybernetic Grid Background -->
-  <path d="M20 0v100M40 0v100M60 0v100M80 0v100M0 20h100M0 40h100M0 60h100M0 80h100" stroke="#1e293b" stroke-width="1" opacity="0.5"/>
-  
-  <!-- Outer glowing ring -->
-  <circle cx="50" cy="50" r="35" stroke="url(#cyberBlue)" stroke-width="4" filter="url(#glow)"/>
-  
-  <!-- Inner dashed ring -->
-  <circle cx="50" cy="50" r="28" stroke="url(#neonGreen)" stroke-width="2" stroke-dasharray="6 6" />
-  
-  <!-- Glitch Play Button core -->
-  <path d="M42 32 L42 68 L68 50 Z" fill="url(#neonGreen)" filter="url(#glow)"/>
-  
-  <!-- Slashed cutout effect -->
-  <path d="M35 25 L45 25 L45 75 L35 75 Z" fill="#020617" transform="rotate(30 50 50)"/>
-  <path d="M38 48 L46 48 L46 52 L38 52 Z" fill="#10b981" />
-  
-  <!-- Center tech eye -->
-  <circle cx="50" cy="50" r="8" fill="#020617" />
-  <circle cx="50" cy="50" r="3" fill="url(#cyberBlue)" filter="url(#glow)"/>
+  <rect width="100" height="100" rx="22" fill="#090908" />
+  <rect x="11.5" y="11.5" width="77" height="77" rx="17.5" fill="#12110f" stroke="#3b362b" stroke-width="3" />
+  <path d="M29 72V28h12v33h20v11H29Z" fill="#d8aa52" />
+  <path d="M49 29h24v11H61v6h10v10H61v6h13v11H49V29Z" fill="#f4efe4" />
+  <path d="M42 39v22l17-11-17-11Z" fill="#090908" />
+  <path d="M45 43v14l11-7-11-7Z" fill="#d8aa52" />
 </svg>

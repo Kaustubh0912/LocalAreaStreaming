@@ -68,6 +68,3 @@ server/data/hls/
 
 # Keep placeholders if needed
 !.gitkeep
-
-# --- Ignore all other files by default ---
-design-system/

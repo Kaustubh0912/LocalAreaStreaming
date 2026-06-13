@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build output and caches
+client/dist
+server/dist
+dist
+build
+coverage
+**/*.tsbuildinfo
+.vite
+
+# Runtime data / generated streams
+data/hls
+server/data/hls
+data/hls-stable
+server/data/hls-stable
+data/subtitles
+server/data/subtitles
+
+# Local env/secrets
+.env
+.env.*
+!*.env.example
+!**/.env.example
+
+# Tool/editor state
+.git
+.gitignore
+.claude
+.gemini
+.vscode
+.idea
+
+# Logs and OS noise
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db

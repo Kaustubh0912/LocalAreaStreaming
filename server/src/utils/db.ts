@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const DB_PATH = path.join(__dirname, '../../data/db.json');
+const DB_PATH = path.join(__dirname, "../../data/db.json");
 
 export interface MovieProgress {
   currentTime: number;
@@ -9,14 +9,21 @@ export interface MovieProgress {
   updatedAt: number;
 }
 
+export interface PosterCacheEntry {
+  poster: string | null;
+  updatedAt: number;
+}
+
 export interface DbSchema {
   progress: Record<string, MovieProgress>;
   watched: string[];
+  posters: Record<string, PosterCacheEntry>;
 }
 
 const defaultDb: DbSchema = {
   progress: {},
   watched: [],
+  posters: {},
 };
 
 export const getDb = (): DbSchema => {
@@ -25,8 +32,8 @@ export const getDb = (): DbSchema => {
     return defaultDb;
   }
   try {
-    const data = fs.readFileSync(DB_PATH, 'utf-8');
-    return JSON.parse(data);
+    const data = fs.readFileSync(DB_PATH, "utf-8");
+    return { ...defaultDb, ...JSON.parse(data) };
   } catch (e) {
     return defaultDb;
   }
@@ -40,7 +47,11 @@ export const saveDb = (db: DbSchema) => {
   fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
 };
 
-export const updateProgress = (movieId: string, currentTime: number, duration: number) => {
+export const updateProgress = (
+  movieId: string,
+  currentTime: number,
+  duration: number,
+) => {
   const db = getDb();
   db.progress[movieId] = {
     currentTime,
@@ -58,5 +69,19 @@ export const toggleWatched = (movieId: string) => {
   } else {
     db.watched.splice(index, 1);
   }
+  saveDb(db);
+};
+
+export const getCachedPoster = (movieId: string) => {
+  const db = getDb();
+  return db.posters[movieId];
+};
+
+export const updatePosterCache = (movieId: string, poster: string | null) => {
+  const db = getDb();
+  db.posters[movieId] = {
+    poster,
+    updatedAt: Date.now(),
+  };
   saveDb(db);
 };
