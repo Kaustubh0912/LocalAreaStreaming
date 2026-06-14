@@ -114,6 +114,12 @@ const getPosterTitleSize = (title: string) => {
   return "clamp(0.54rem, 0.9vw, 0.7rem)";
 };
 
+const SORT_OPTIONS: Array<{ id: SortOption; label: string }> = [
+  { id: "date", label: "Recently added" },
+  { id: "title", label: "A to Z" },
+  { id: "size", label: "Largest files" },
+];
+
 function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [config, setConfig] = useState<Config>({ movieFolderPaths: [] });
@@ -124,6 +130,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("date");
+  const [isSortOpen, setIsSortOpen] = useState(false);
   const [filterBy, setFilterBy] = useState<FilterOption>("all");
   const [useTranscoding, setUseTranscoding] = useState(false);
   const [deferredPrompt, setDeferredPrompt] =
@@ -132,6 +139,7 @@ function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<number | null>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   const isIOS =
     /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -172,6 +180,22 @@ function App() {
       setLoading(false);
     }
   }, [fetchMovies]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+
+    if (isSortOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [isSortOpen]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: BeforeInstallPromptEvent) => {
@@ -487,19 +511,49 @@ function App() {
                 />
               </label>
 
-              <label className="select-field">
-                <span>Sort</span>
-                <select
-                  value={sortBy}
-                  onChange={(event) =>
-                    setSortBy(event.target.value as SortOption)
-                  }
+              <div
+                className={`custom-select ${isSortOpen ? "is-open" : ""}`}
+                ref={sortRef}
+              >
+                <button
+                  className="select-trigger"
+                  type="button"
+                  onClick={() => setIsSortOpen(!isSortOpen)}
+                  aria-expanded={isSortOpen}
+                  aria-haspopup="listbox"
                 >
-                  <option value="date">Recently added</option>
-                  <option value="title">A to Z</option>
-                  <option value="size">Largest files</option>
-                </select>
-              </label>
+                  <span className="select-label">Sort</span>
+                  <strong className="select-value">
+                    {SORT_OPTIONS.find((o) => o.id === sortBy)?.label}
+                  </strong>
+                  <span className="select-arrow" aria-hidden="true">
+                    ▾
+                  </span>
+                </button>
+
+                {isSortOpen && (
+                  <ul className="select-dropdown" role="listbox">
+                    {SORT_OPTIONS.map((option) => (
+                      <li
+                        key={option.id}
+                        role="option"
+                        aria-selected={sortBy === option.id}
+                      >
+                        <button
+                          className={sortBy === option.id ? "active" : ""}
+                          type="button"
+                          onClick={() => {
+                            setSortBy(option.id);
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 
