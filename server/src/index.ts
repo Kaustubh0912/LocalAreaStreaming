@@ -20,10 +20,8 @@ import { probeMedia } from "./utils/probe";
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-// Auto-detect if NVENC Hardware Acceleration is actually available
 let isNvencAvailable = false;
 try {
-  // We run a dummy frame encode. If it exits with 0, the GPU is active.
   const result = spawnSync("ffmpeg", [
     "-v",
     "error",
@@ -49,7 +47,6 @@ try {
   );
 }
 
-// Get MIME type based on file extension
 const getMimeType = (filePath: string) => {
   const ext = path.extname(filePath).toLowerCase();
   switch (ext) {
@@ -68,7 +65,7 @@ const getMimeType = (filePath: string) => {
     case ".wmv":
       return "video/x-ms-wmv";
     default:
-      return "video/mp4"; // Fallback to mp4
+      return "video/mp4";
   }
 };
 
@@ -421,7 +418,6 @@ const notifyClients = () =>
   clients.forEach((c) => c.res.write("data: update\n\n"));
 initWatcher(notifyClients);
 
-// API Routes
 app.get("/api/config", (req, res) => res.json(getConfig()));
 app.post("/api/config", (req, res) => {
   const { movieFolderPaths } = req.body;
@@ -446,8 +442,6 @@ app.get("/api/movies", async (req, res) => {
       const id = Buffer.from(`${m.baseDir}|${m.relPath}`).toString("base64");
       const title = parseMovieTitle(m.filename);
 
-      // Probing is slow, so ideally we'd cache this in db.json
-      // For now, we'll do it on the fly but keep it simple
       const info = await probeMedia(m.fullPath);
 
       allMovies.push({

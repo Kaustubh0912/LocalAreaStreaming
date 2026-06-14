@@ -18,7 +18,7 @@ export const updateWatcher = () => {
   if (!config.movieFolderPaths || config.movieFolderPaths.length === 0) return;
 
   watcher = chokidar.watch(config.movieFolderPaths, {
-    ignored: /(^|[\/\\])\../, // ignore dotfiles
+    ignored: /(^|[\/\\])\../,
     persistent: true,
     ignoreInitial: true,
   });

@@ -140,6 +140,102 @@ function App() {
   const progressInterval = useRef<number | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const lastToggleTime = useRef(0);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!selectedMovie || !videoRef.current) return;
+      if (event.repeat) return;
+
+      const video = videoRef.current;
+      const handledKeys = [
+        " ",
+        "k",
+        "j",
+        "l",
+        "f",
+        "c",
+        "ArrowLeft",
+        "ArrowRight",
+      ];
+
+      if (handledKeys.includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        (document.activeElement as HTMLElement)?.blur();
+      }
+
+      switch (event.key) {
+        case " ":
+        case "k": {
+          const now = Date.now();
+          if (now - lastToggleTime.current < 200) break;
+          lastToggleTime.current = now;
+
+          if (video.paused) void video.play();
+          else video.pause();
+          break;
+        }
+        case "j":
+          video.currentTime = Math.max(0, video.currentTime - 10);
+          break;
+        case "l":
+          video.currentTime = Math.min(video.duration, video.currentTime + 10);
+          break;
+        case "ArrowLeft":
+          video.currentTime = Math.max(0, video.currentTime - 5);
+          break;
+        case "ArrowRight":
+          video.currentTime = Math.min(video.duration, video.currentTime + 5);
+          break;
+        case "f":
+          if (!document.fullscreenElement) {
+            void video.requestFullscreen();
+          } else {
+            void document.exitFullscreen();
+          }
+          break;
+        case "c":
+          if (video.textTracks.length > 0) {
+            const track = video.textTracks[0];
+            track.mode = track.mode === "showing" ? "hidden" : "showing";
+          }
+          break;
+        case "Escape":
+          if (document.fullscreenElement) {
+            void document.exitFullscreen();
+          } else {
+            setSelectedMovie(null);
+          }
+          break;
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!selectedMovie) return;
+      const handledKeys = [
+        " ",
+        "k",
+        "j",
+        "l",
+        "f",
+        "c",
+        "ArrowLeft",
+        "ArrowRight",
+      ];
+      if (handledKeys.includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    window.addEventListener("keyup", handleKeyUp, true);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+      window.removeEventListener("keyup", handleKeyUp, true);
+    };
+  }, [selectedMovie]);
 
   const isIOS =
     /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -226,15 +322,6 @@ function App() {
 
     return () => eventSource.close();
   }, [fetchConfig, fetchMovies]);
-
-  useEffect(() => {
-    const closePlayer = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedMovie(null);
-    };
-
-    window.addEventListener("keydown", closePlayer);
-    return () => window.removeEventListener("keydown", closePlayer);
-  }, []);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -353,6 +440,11 @@ function App() {
     }, 5000);
 
     return () => {
+      if (video.currentTime > 0 && video.duration > 0) {
+        void saveProgress(selectedMovie.id, video.currentTime, video.duration);
+      }
+
+      video.pause();
       video.removeEventListener("loadedmetadata", restoreAndPlay);
 
       if (progressInterval.current) {
@@ -913,7 +1005,13 @@ function App() {
           </header>
 
           <div className="video-stage">
-            <video ref={videoRef} controls playsInline crossOrigin="anonymous">
+            <video
+              ref={videoRef}
+              controls
+              playsInline
+              crossOrigin="anonymous"
+              autoPlay
+            >
               {selectedMovie.hasSubtitles && (
                 <track
                   key={selectedMovie.id}
